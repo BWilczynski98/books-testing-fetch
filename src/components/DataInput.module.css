@@ -1,0 +1,22 @@
+.input-container {
+    width: 100%;
+}
+
+.label {
+    text-transform: uppercase;
+    font-weight: bold;
+    font-size: 14px;
+
+}
+
+.input input {
+    height: 30px;
+    width: 100%;
+    border: 1px solid #666;
+    border-radius: 3px;
+    padding: 0px 2px;
+}
+
+.input input:focus {
+    outline: none;
+}
