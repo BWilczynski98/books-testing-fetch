@@ -20,36 +20,39 @@ export const Storage = ({ children }) => {
                 }
             );
         };
-        console.log('transformData');
         setBooks(loadedBooks)
     };
 
+    const getBookHandler = async () => {
+        const response = await fetch('https://react-test-e9c4d-default-rtdb.europe-west1.firebasedatabase.app/books.json');
+        const data = await response.json();
+        console.log(data);
+        transformData(data)
+        console.log(response);
+    };
+
     const addBookHandler = async book => {
-        await fetch('https://react-test-e9c4d-default-rtdb.europe-west1.firebasedatabase.app/books.json', {
+        const response = await fetch('https://react-test-e9c4d-default-rtdb.europe-west1.firebasedatabase.app/books.json', {
             method: 'POST',
             body: JSON.stringify(book),
             headers: {
                 'Content-type': 'application/json',
             }
         });
-        await getBookHandler();
+        if (response.status === 200) getBookHandler();   
     };
 
-    const getBookHandler = async () => {
-        const response = await fetch('https://react-test-e9c4d-default-rtdb.europe-west1.firebasedatabase.app/books.json');
-        const data = await response.json();
-        await transformData(data)
-        console.log(response);
-    };
+
 
     const deleteBook = async (id) => {
         await fetch(`https://react-test-e9c4d-default-rtdb.europe-west1.firebasedatabase.app/books/${id}.json`, { method: 'DELETE' });
         await getBookHandler()
     };
 
+    useEffect(() => {
+        getBookHandler()
+    }, [])
 
-
-    console.log(books);
     const values = {
         bookManagement: {
             addBookHandler,
