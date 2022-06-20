@@ -1,74 +1,55 @@
 import React, { createContext, useState, useEffect, useCallback } from 'react';
+import useHttp from '../hooks/useHttp';
 export const GlobalStorage = createContext();
 
 
-
-
-// ? https://stackoverflow.com/questions/61254372/my-react-component-is-rendering-twice-because-of-strict-mode
-// const reducerFunction = (state, action) => {
-//     console.log('Reducer run');
-//     switch (action.type) {
-//         case ACTION.ADD:
-//             console.log('case run');
-//             const movie = {
-//                 title: action.payload.title,
-//                 author: action.payload.author,
-//                 releaseDate: action.payload.releaseDate,
-//                 rate: action.payload.rate
-//             };
-//             return addMovieHandler(movie);
-//         default:
-//             console.log('default');
-//             return null;
-//     }
-// }
-
 export const Storage = ({ children }) => {
     const [books, setBooks] = useState([]);
+    const { error, isLoading, request } = useHttp();
 
-    const addBookHandler = async (book) => {
-        console.log(book);
-        const response = await fetch('https://react-test-e9c4d-default-rtdb.europe-west1.firebasedatabase.app/books.json', {
+    const transformData = book => {
+        const loadedBooks = [];
+        for (const key in book) {
+            loadedBooks.push(
+                {
+                    id: key,
+                    title: book[key].title,
+                    author: book[key].author,
+                    releaseDate: book[key].releaseDate,
+                    rate: book[key].rate
+                }
+            );
+        };
+        console.log('transformData');
+        setBooks(loadedBooks)
+    };
+
+    const addBookHandler = async book => {
+        await fetch('https://react-test-e9c4d-default-rtdb.europe-west1.firebasedatabase.app/books.json', {
             method: 'POST',
             body: JSON.stringify(book),
             headers: {
                 'Content-type': 'application/json',
             }
         });
-        const data = await response.json();
-        console.log(data);
+        await getBookHandler();
+    };
 
-
-    }
-
-    const getBookHandler = useCallback(async () => {
+    const getBookHandler = async () => {
         const response = await fetch('https://react-test-e9c4d-default-rtdb.europe-west1.firebasedatabase.app/books.json');
         const data = await response.json();
-        const loadedBooks = [];
+        await transformData(data)
+        console.log(response);
+    };
 
-        for (const key in data) {
-            loadedBooks.push(
-                {
-                    id: key,
-                    title: data[key].title,
-                    author: data[key].author,
-                    releaseDate: data[key].releaseDate,
-                    rate: data[key].rate
-                }
-            );
-        }
-        setBooks(loadedBooks)
-    });
-
-    const deleteBook = useCallback((id) => {
-        fetch(`https://react-test-e9c4d-default-rtdb.europe-west1.firebasedatabase.app/books/${id}.json`, { method: 'DELETE' }).then(res => res.json()).then(() => getBookHandler());
-
-    })
+    const deleteBook = async (id) => {
+        await fetch(`https://react-test-e9c4d-default-rtdb.europe-west1.firebasedatabase.app/books/${id}.json`, { method: 'DELETE' });
+        await getBookHandler()
+    };
 
 
-    useEffect(() => {
-        getBookHandler();
-    }, [getBookHandler])
+
+    console.log(books);
     const values = {
         bookManagement: {
             addBookHandler,
@@ -76,7 +57,8 @@ export const Storage = ({ children }) => {
             deleteBook,
             books,
         }
-    }
+    };
+
     return (
         <GlobalStorage.Provider value={values}>
             {children}
